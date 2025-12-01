@@ -1,0 +1,60 @@
+{
+  "books": [
+    "HistoricParis",
+    "NineteenthTwentiethCentury",
+    "Haciendas",
+    "JapaneseHomes",
+    "PalaceAndPark"
+  ],
+  "metrics": {
+    "flesch_reading_ease": [
+      68.81,
+      47.52,
+      46.3,
+      65.25,
+      60.14
+    ],
+    "flesch_kincaid_grade": [
+      8.5,
+      12.5,
+      13.0,
+      9.8,
+      9.7
+    ],
+    "avg_sentence_length": [
+      15.9,
+      27.04,
+      22.06,
+      16.76,
+      17.21
+    ],
+    "avg_word_length": [
+      4.47,
+      4.99,
+      5.04,
+      4.49,
+      4.73
+    ],
+    "lexical_diversity": [
+      0.09,
+      0.05,
+      0.23,
+      0.08,
+      0.07
+    ],
+    "total_words": [
+      83490,
+      262955,
+      3132,
+      91578,
+      252609
+    ],
+    "sentiment_compound": [
+      0.039,
+      0.167,
+      0.138,
+      0.083,
+      0.118
+    ]
+  }
+}
