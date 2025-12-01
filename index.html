@@ -18,11 +18,25 @@
         </header>
 
         <nav class="book-selector">
-            <h2>Select a Book</h2>
+            <div class="selector-header">
+                <h2>Select Books</h2>
+                <div class="mode-toggle">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="multiSelectToggle">
+                        <span class="toggle-text">Multi-Select Mode</span>
+                    </label>
+                </div>
+            </div>
+            <p class="selection-hint" id="selectionHint">Click a book to view its analysis</p>
             <div class="book-buttons" id="bookButtons">
                 <!-- Buttons will be dynamically generated -->
             </div>
-            <button class="btn btn-compare" id="compareBtn">Compare All Books</button>
+            <div class="compare-buttons">
+                <button class="btn btn-compare-selected hidden" id="compareSelectedBtn">
+                    Compare Selected (<span id="selectedCount">0</span>)
+                </button>
+                <button class="btn btn-compare" id="compareBtn">Compare All Books</button>
+            </div>
         </nav>
 
         <!-- Individual Book View -->
@@ -62,7 +76,7 @@
         <!-- Comparative View -->
         <div class="view-container hidden" id="comparativeView">
             <section class="book-header">
-                <h2>Comparative Analysis: All Books</h2>
+                <h2 id="compareTitle">Comparative Analysis: All Books</h2>
             </section>
 
             <div class="metrics-grid">
