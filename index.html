@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distant Reading: Architecture Texts</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- WordCloud2.js -->
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Distant Reading Analysis</h1>
+            <p class="subtitle">Five Architecture Texts from Project Gutenberg</p>
+        </header>
+
+        <nav class="book-selector">
+            <h2>Select a Book</h2>
+            <div class="book-buttons" id="bookButtons">
+                <!-- Buttons will be dynamically generated -->
+            </div>
+            <button class="btn btn-compare" id="compareBtn">Compare All Books</button>
+        </nav>
+
+        <!-- Individual Book View -->
+        <div class="view-container" id="individualView">
+            <section class="book-header">
+                <h2 id="bookTitle">Select a book to begin</h2>
+            </section>
+
+            <div class="metrics-grid">
+                <!-- Sentiment Analysis -->
+                <div class="card">
+                    <h3>Sentiment Analysis</h3>
+                    <canvas id="sentimentChart"></canvas>
+                    <div class="metric-summary" id="sentimentSummary"></div>
+                </div>
+
+                <!-- Word Cloud -->
+                <div class="card">
+                    <h3>Word Cloud</h3>
+                    <canvas id="wordcloud" width="600" height="400"></canvas>
+                </div>
+
+                <!-- Style Metrics -->
+                <div class="card card-full">
+                    <h3>Style Metrics</h3>
+                    <div class="metrics-table" id="styleMetrics"></div>
+                </div>
+
+                <!-- Topic Distribution -->
+                <div class="card card-full">
+                    <h3>Topic Distribution</h3>
+                    <canvas id="topicChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparative View -->
+        <div class="view-container hidden" id="comparativeView">
+            <section class="book-header">
+                <h2>Comparative Analysis: All Books</h2>
+            </section>
+
+            <div class="metrics-grid">
+                <!-- Sentiment Comparison -->
+                <div class="card card-full">
+                    <h3>Sentiment Scores Comparison</h3>
+                    <canvas id="compareSentimentChart"></canvas>
+                </div>
+
+                <!-- Readability Comparison -->
+                <div class="card card-full">
+                    <h3>Readability Metrics</h3>
+                    <canvas id="compareReadabilityChart"></canvas>
+                </div>
+
+                <!-- Lexical Diversity -->
+                <div class="card">
+                    <h3>Lexical Diversity</h3>
+                    <canvas id="compareLexicalChart"></canvas>
+                </div>
+
+                <!-- Word Count -->
+                <div class="card">
+                    <h3>Total Words</h3>
+                    <canvas id="compareWordCountChart"></canvas>
+                </div>
+
+                <!-- Topic Modeling Results -->
+                <div class="card card-full">
+                    <h3>Topic Modeling Results</h3>
+                    <div id="topicsList"></div>
+                </div>
+
+                <!-- Comparative Table -->
+                <div class="card card-full">
+                    <h3>Detailed Metrics Table</h3>
+                    <div class="table-container" id="comparativeTable"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Data generated using NLTK, VADER Sentiment, and LDA Topic Modeling</p>
+            <p>Texts from <a href="https://www.gutenberg.org" target="_blank">Project Gutenberg</a></p>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
