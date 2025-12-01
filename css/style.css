@@ -68,6 +68,48 @@ header h1 {
     font-size: 1.5rem;
 }
 
+/* Selector Header with Toggle */
+.selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.mode-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 10px;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--secondary-color);
+}
+
+.toggle-text {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    user-select: none;
+}
+
+.selection-hint {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
 .book-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -103,8 +145,31 @@ header h1 {
     box-shadow: var(--shadow-hover);
 }
 
+.btn-book.selected {
+    background-color: #9b59b6;
+    border: 3px solid #8e44ad;
+    box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+}
+
+.btn-book.selected:hover {
+    background-color: #8e44ad;
+}
+
+.compare-buttons {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+}
+
 .btn-compare {
     background-color: var(--success-color);
+    color: white;
+    width: 100%;
+    font-size: 1.1rem;
+}
+
+.btn-compare-selected {
+    background-color: #9b59b6;
     color: white;
     width: 100%;
     font-size: 1.1rem;
@@ -118,6 +183,22 @@ header h1 {
 
 .btn-compare.active {
     background-color: var(--accent-color);
+}
+
+.btn-compare-selected:hover {
+    background-color: #8e44ad;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.btn-compare-selected.active {
+    background-color: #8e44ad;
+}
+
+.btn-compare-selected:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* View Container */

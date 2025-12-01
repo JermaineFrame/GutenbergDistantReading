@@ -8,6 +8,8 @@ class DistantReadingViz {
         this.topics = null;
         this.currentBook = null;
         this.charts = {};
+        this.multiSelectMode = false;
+        this.selectedBooks = new Set();
 
         this.init();
     }
@@ -47,6 +49,45 @@ class DistantReadingViz {
     setupEventListeners() {
         const compareBtn = document.getElementById('compareBtn');
         compareBtn.addEventListener('click', () => this.showComparative());
+
+        const compareSelectedBtn = document.getElementById('compareSelectedBtn');
+        compareSelectedBtn.addEventListener('click', () => this.showSelectedComparative());
+
+        const multiSelectToggle = document.getElementById('multiSelectToggle');
+        multiSelectToggle.addEventListener('change', (e) => this.toggleMultiSelectMode(e.target.checked));
+    }
+
+    toggleMultiSelectMode(enabled) {
+        this.multiSelectMode = enabled;
+        const hint = document.getElementById('selectionHint');
+
+        if (enabled) {
+            hint.textContent = 'Click books to select/deselect for comparison (select 2 or more)';
+            // Clear single book active states
+            document.querySelectorAll('.btn-book').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        } else {
+            hint.textContent = 'Click a book to view its analysis';
+            // Clear selections
+            this.selectedBooks.clear();
+            document.querySelectorAll('.btn-book').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            this.updateSelectedCount();
+        }
+    }
+
+    updateSelectedCount() {
+        const count = this.selectedBooks.size;
+        document.getElementById('selectedCount').textContent = count;
+
+        const compareSelectedBtn = document.getElementById('compareSelectedBtn');
+        if (count >= 2) {
+            compareSelectedBtn.classList.remove('hidden');
+        } else {
+            compareSelectedBtn.classList.add('hidden');
+        }
     }
 
     renderBookButtons() {
@@ -57,9 +98,27 @@ class DistantReadingViz {
             const button = document.createElement('button');
             button.className = 'btn btn-book';
             button.textContent = this.formatBookTitle(book.title);
-            button.addEventListener('click', () => this.showBook(book));
+            button.dataset.bookTitle = book.title;
+            button.addEventListener('click', () => this.handleBookClick(book, button));
             container.appendChild(button);
         });
+    }
+
+    handleBookClick(book, button) {
+        if (this.multiSelectMode) {
+            // Multi-select mode: toggle selection
+            if (this.selectedBooks.has(book.title)) {
+                this.selectedBooks.delete(book.title);
+                button.classList.remove('selected');
+            } else {
+                this.selectedBooks.add(book.title);
+                button.classList.add('selected');
+            }
+            this.updateSelectedCount();
+        } else {
+            // Single view mode: show individual book
+            this.showBook(book);
+        }
     }
 
     formatBookTitle(title) {
@@ -107,6 +166,10 @@ class DistantReadingViz {
         });
 
         document.getElementById('compareBtn').classList.add('active');
+        document.getElementById('compareSelectedBtn').classList.remove('active');
+
+        // Update title
+        document.getElementById('compareTitle').textContent = 'Comparative Analysis: All Books';
 
         // Render comparative visualizations
         this.renderComparativeSentiment();
@@ -115,6 +178,44 @@ class DistantReadingViz {
         this.renderComparativeWordCount();
         this.renderTopicsList();
         this.renderComparativeTable();
+    }
+
+    showSelectedComparative() {
+        if (this.selectedBooks.size < 2) {
+            alert('Please select at least 2 books to compare');
+            return;
+        }
+
+        // Update UI
+        document.getElementById('individualView').classList.add('hidden');
+        document.getElementById('comparativeView').classList.remove('hidden');
+
+        // Update active button
+        document.querySelectorAll('.btn-book').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        document.getElementById('compareBtn').classList.remove('active');
+        document.getElementById('compareSelectedBtn').classList.add('active');
+
+        // Update title
+        const selectedTitles = Array.from(this.selectedBooks)
+            .map(title => this.formatBookTitle(title))
+            .join(', ');
+        document.getElementById('compareTitle').textContent = `Comparative Analysis: ${selectedTitles}`;
+
+        // Get selected books data
+        const selectedBooksData = this.allBooks.filter(book =>
+            this.selectedBooks.has(book.title)
+        );
+
+        // Render comparative visualizations with selected books
+        this.renderComparativeSentiment(selectedBooksData);
+        this.renderComparativeReadability(selectedBooksData);
+        this.renderComparativeLexical(selectedBooksData);
+        this.renderComparativeWordCount(selectedBooksData);
+        this.renderTopicsList(selectedBooksData);
+        this.renderComparativeTable(selectedBooksData);
     }
 
     renderSentimentChart(book) {
@@ -315,7 +416,7 @@ class DistantReadingViz {
         });
     }
 
-    renderComparativeSentiment() {
+    renderComparativeSentiment(booksToCompare = null) {
         const ctx = document.getElementById('compareSentimentChart');
 
         // Destroy existing chart
@@ -323,7 +424,10 @@ class DistantReadingViz {
             this.charts.compareSentiment.destroy();
         }
 
-        const labels = this.comparative.books.map(b => this.formatBookTitle(b));
+        // Use provided books or all books
+        const books = booksToCompare || this.allBooks;
+        const labels = books.map(b => this.formatBookTitle(b.title));
+        const sentimentData = books.map(b => b.sentiment.compound);
 
         this.charts.compareSentiment = new Chart(ctx, {
             type: 'bar',
@@ -331,8 +435,8 @@ class DistantReadingViz {
                 labels: labels,
                 datasets: [{
                     label: 'Compound Sentiment',
-                    data: this.comparative.metrics.sentiment_compound,
-                    backgroundColor: this.comparative.metrics.sentiment_compound.map(val =>
+                    data: sentimentData,
+                    backgroundColor: sentimentData.map(val =>
                         val >= 0.05 ? '#27ae60' : val <= -0.05 ? '#e74c3c' : '#95a5a6'
                     ),
                     borderWidth: 2,
@@ -358,7 +462,7 @@ class DistantReadingViz {
         });
     }
 
-    renderComparativeReadability() {
+    renderComparativeReadability(booksToCompare = null) {
         const ctx = document.getElementById('compareReadabilityChart');
 
         // Destroy existing chart
@@ -366,7 +470,11 @@ class DistantReadingViz {
             this.charts.compareReadability.destroy();
         }
 
-        const labels = this.comparative.books.map(b => this.formatBookTitle(b));
+        // Use provided books or all books
+        const books = booksToCompare || this.allBooks;
+        const labels = books.map(b => this.formatBookTitle(b.title));
+        const fleschEase = books.map(b => b.style_metrics.flesch_reading_ease);
+        const fleschGrade = books.map(b => b.style_metrics.flesch_kincaid_grade);
 
         this.charts.compareReadability = new Chart(ctx, {
             type: 'bar',
@@ -375,14 +483,14 @@ class DistantReadingViz {
                 datasets: [
                     {
                         label: 'Flesch Reading Ease',
-                        data: this.comparative.metrics.flesch_reading_ease,
+                        data: fleschEase,
                         backgroundColor: '#3498db',
                         borderWidth: 2,
                         borderColor: '#2980b9'
                     },
                     {
                         label: 'Flesch-Kincaid Grade',
-                        data: this.comparative.metrics.flesch_kincaid_grade,
+                        data: fleschGrade,
                         backgroundColor: '#e74c3c',
                         borderWidth: 2,
                         borderColor: '#c0392b'
@@ -406,7 +514,7 @@ class DistantReadingViz {
         });
     }
 
-    renderComparativeLexical() {
+    renderComparativeLexical(booksToCompare = null) {
         const ctx = document.getElementById('compareLexicalChart');
 
         // Destroy existing chart
@@ -414,7 +522,10 @@ class DistantReadingViz {
             this.charts.compareLexical.destroy();
         }
 
-        const labels = this.comparative.books.map(b => this.formatBookTitle(b));
+        // Use provided books or all books
+        const books = booksToCompare || this.allBooks;
+        const labels = books.map(b => this.formatBookTitle(b.title));
+        const lexicalData = books.map(b => (b.style_metrics.lexical_diversity * 100).toFixed(1));
 
         this.charts.compareLexical = new Chart(ctx, {
             type: 'bar',
@@ -422,7 +533,7 @@ class DistantReadingViz {
                 labels: labels,
                 datasets: [{
                     label: 'Lexical Diversity',
-                    data: this.comparative.metrics.lexical_diversity.map(v => (v * 100).toFixed(1)),
+                    data: lexicalData,
                     backgroundColor: '#9b59b6',
                     borderWidth: 2,
                     borderColor: '#8e44ad'
@@ -457,7 +568,7 @@ class DistantReadingViz {
         });
     }
 
-    renderComparativeWordCount() {
+    renderComparativeWordCount(booksToCompare = null) {
         const ctx = document.getElementById('compareWordCountChart');
 
         // Destroy existing chart
@@ -465,7 +576,10 @@ class DistantReadingViz {
             this.charts.compareWordCount.destroy();
         }
 
-        const labels = this.comparative.books.map(b => this.formatBookTitle(b));
+        // Use provided books or all books
+        const books = booksToCompare || this.allBooks;
+        const labels = books.map(b => this.formatBookTitle(b.title));
+        const wordCountData = books.map(b => b.style_metrics.total_words);
 
         this.charts.compareWordCount = new Chart(ctx, {
             type: 'bar',
@@ -473,7 +587,7 @@ class DistantReadingViz {
                 labels: labels,
                 datasets: [{
                     label: 'Total Words',
-                    data: this.comparative.metrics.total_words,
+                    data: wordCountData,
                     backgroundColor: '#27ae60',
                     borderWidth: 2,
                     borderColor: '#229954'
@@ -508,34 +622,45 @@ class DistantReadingViz {
         });
     }
 
-    renderTopicsList() {
+    renderTopicsList(booksToCompare = null) {
         const container = document.getElementById('topicsList');
+
+        // Use provided books or all books
+        const books = booksToCompare || this.allBooks;
+        const bookTitles = books.map(b => b.title);
 
         let html = '';
 
         this.topics.topics.forEach(topic => {
-            html += `
-                <div class="topic-item">
-                    <h4>Topic ${topic.topic_id + 1}</h4>
-                    <div class="topic-words">
-                        ${topic.words.map(word => `<span class="topic-word">${word}</span>`).join('')}
+            // Filter document topics to only show selected books
+            const relevantDocs = this.topics.document_topics
+                .filter(dt => bookTitles.includes(dt.book) && dt.dominant_topic === topic.topic_id);
+
+            // Only show topic if it's dominant in at least one of the books being compared
+            if (booksToCompare === null || relevantDocs.length > 0) {
+                html += `
+                    <div class="topic-item">
+                        <h4>Topic ${topic.topic_id + 1}</h4>
+                        <div class="topic-words">
+                            ${topic.words.map(word => `<span class="topic-word">${word}</span>`).join('')}
+                        </div>
+                        <div class="book-topics">
+                            <strong>Dominant in:</strong>
+                            ${relevantDocs.map(dt => this.formatBookTitle(dt.book)).join(', ') || 'None'}
+                        </div>
                     </div>
-                    <div class="book-topics">
-                        <strong>Dominant in:</strong>
-                        ${this.topics.document_topics
-                            .filter(dt => dt.dominant_topic === topic.topic_id)
-                            .map(dt => this.formatBookTitle(dt.book))
-                            .join(', ') || 'None'}
-                    </div>
-                </div>
-            `;
+                `;
+            }
         });
 
-        container.innerHTML = html;
+        container.innerHTML = html || '<p>No dominant topics found for selected books.</p>';
     }
 
-    renderComparativeTable() {
+    renderComparativeTable(booksToCompare = null) {
         const container = document.getElementById('comparativeTable');
+
+        // Use provided books or all books
+        const books = booksToCompare || this.allBooks;
 
         let html = `
             <table>
@@ -553,16 +678,16 @@ class DistantReadingViz {
                 <tbody>
         `;
 
-        this.comparative.books.forEach((book, i) => {
+        books.forEach(book => {
             html += `
                 <tr>
-                    <td><strong>${this.formatBookTitle(book)}</strong></td>
-                    <td>${this.comparative.metrics.sentiment_compound[i]}</td>
-                    <td>${this.comparative.metrics.flesch_reading_ease[i]}</td>
-                    <td>${this.comparative.metrics.flesch_kincaid_grade[i]}</td>
-                    <td>${this.comparative.metrics.lexical_diversity[i]}%</td>
-                    <td>${this.comparative.metrics.avg_sentence_length[i]}</td>
-                    <td>${this.comparative.metrics.total_words[i].toLocaleString()}</td>
+                    <td><strong>${this.formatBookTitle(book.title)}</strong></td>
+                    <td>${book.sentiment.compound.toFixed(3)}</td>
+                    <td>${book.style_metrics.flesch_reading_ease.toFixed(1)}</td>
+                    <td>${book.style_metrics.flesch_kincaid_grade.toFixed(1)}</td>
+                    <td>${(book.style_metrics.lexical_diversity * 100).toFixed(1)}%</td>
+                    <td>${book.style_metrics.avg_sentence_length.toFixed(1)}</td>
+                    <td>${book.style_metrics.total_words.toLocaleString()}</td>
                 </tr>
             `;
         });
